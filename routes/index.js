@@ -21,9 +21,22 @@ router.get("/cart", isLoggedIn, async function(req, res){
     let user = await userModel
         .findOne({ email: req.user.email })
         .populate("cart");
-    const bill = user.cart.price+20-user.cart.discount;
+
+    if (!user || !user.cart || user.cart.length === 0) {
+        return res.render("cart", { user, bill: 0 });
+    }
+
+    let bill = 0;
+
+    user.cart.forEach(product => {
+        bill += product.price;
+    });
+
+    bill += 20; // shipping
+
     res.render("cart", { user, bill });
-})
+});
+
 
 router.get("/addtocart/:productId", isLoggedIn, async function(req, res){
     let user = await userModel.findOne({ email: req.user.email });
